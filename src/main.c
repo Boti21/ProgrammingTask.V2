@@ -37,7 +37,7 @@ volatile double timer = 0.0;
 ISR(USART_RX_vect)
 {
     rx_in = UDR0;
-    if(rx_in == 0x71 && rx_val == 0 && rx_error == 0)
+    if(rx_in == 0x71 && rx_val == 0 && rx_error == 0) //First bit; incoming datatype flag
         rx_val = 1;
     else if(rx_in == 0x1A && rx_val == 0 && rx_error == 0)
         rx_error = 1;
