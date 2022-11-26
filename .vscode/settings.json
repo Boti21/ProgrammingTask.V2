@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "lm75.h": "c",
+        "io.h": "c",
+        "interrupt.h": "c"
+    }
+}
