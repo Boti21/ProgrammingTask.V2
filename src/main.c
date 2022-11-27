@@ -65,43 +65,43 @@ ISR(USART_RX_vect)
         OCR0A = dutyCycle;
         OCR0B = OCR0A;
     }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 101)
+    if(rx_val == 1 && rx_error == 0)
     {
-        if((dutyCycle + 25) <= 255)
+        switch (rx_in)
         {
-            dutyHelper = dutyHelper + 25.5;
-            dutyCycle = dutyHelper;
-            OCR0A = dutyCycle;
-            OCR0B = OCR0A;
+            case 101: //increase duty cycle by 10%
+                if((dutyCycle + 25) <= 255)
+                {
+                    dutyHelper = dutyHelper + 25.5;
+                    dutyCycle = dutyHelper;
+                    OCR0A = dutyCycle;
+                    OCR0B = OCR0A;
+                }
+                break;
+            case 102: //decrease duty cycle by 10%
+                if((dutyCycle - 25) >= 0)
+                {
+                    dutyHelper = dutyHelper - 25.5;
+                    dutyCycle = dutyHelper;
+                    OCR0A = dutyCycle;
+                    OCR0B = OCR0A;
+                }
+                break;
+            case 103: //start motor
+                motor_run = 1;
+                rx_end = 1;
+                break;
+            case 104: //stop motor 
+                motor_run = 0;
+                rx_end = 1;
+                break;
+            case 105: //change page
+                rx_page = 1;
+                break;
+            case 106: //change page
+                rx_page = 0;
+                break;
         }
-    }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 102)
-    {
-        if((dutyCycle - 25) >= 0)
-        {
-            dutyHelper = dutyHelper - 25.5;
-            dutyCycle = dutyHelper;
-            OCR0A = dutyCycle;
-            OCR0B = OCR0A;
-        }
-    }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 103)
-    {
-        motor_run = 1;
-        rx_end = 1;
-    }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 104)
-    {
-        motor_run = 0;
-        rx_end = 1;
-    }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 105)
-    {
-        rx_page = 1;
-    }
-    else if(rx_val == 1 && rx_error == 0 && rx_in == 106)
-    {
-        rx_page = 0;
     }
 }
 
