@@ -217,7 +217,6 @@ int main(void) {
                 //Display instructions, occasional multiplication to adjust the values for the screen to be displayed properly
                 printf("speedval.val=%d%c%c%c", (int)speed, 255, 255, 255);
                 printf("distval.val=%d%c%c%c", (int)dist, 255 , 255, 255);
-                //printf("timeval.val=%d%c%c%c", (int)(timer * 10), 255, 255, 255);
             }
 
         }
