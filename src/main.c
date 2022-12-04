@@ -19,15 +19,12 @@
 
 
 volatile float dutyCycle = 0; //value = 0-255; duty cycle formula: dutyCycle/255=percentage, has to be declared outside main for the ISR to access it
-volatile unsigned int dutyHelper = 0; //helper variable for the duty cycle calculation
 volatile bool motor_run = 0;
 
-
-volatile bool rx_end = 0;
 volatile unsigned char rx_in;
-volatile unsigned char rx_strike = 0;
 volatile bool rx_val = 0;
 volatile unsigned char rx_page = 0;
+volatile bool rx_end = 0;
 
 volatile unsigned int time_temp = 0;
 volatile float time = 0.0;
@@ -48,7 +45,6 @@ ISR(USART_RX_vect)
     if(rx_val == 1 && rx_in <= 100)
     {
         dutyCycle = (rx_in/100.0) * 255.0;
-        //dutyHelper = dutyCycle;
         OCR0A = dutyCycle;
         rx_val = 0;
     }
@@ -173,8 +169,7 @@ int main(void) {
         while(!(TIFR1 & (1<<ICF1)))
         {
 
-            printf("dutycycle%d%c%c%c", OCR0A, 255, 255, 255);
-            //printf("tempflag:%d%c%c%c", tempflag, 255, 255, 255);
+            printf("dutycycle%d%c%c%c", OCR0A, 255, 255, 255); //Useful debug info
 
             if(rx_page == 0)
             {
