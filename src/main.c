@@ -19,6 +19,7 @@
 
 
 volatile float dutyCycle = 0; //value = 0-255; duty cycle formula: dutyCycle/255=percentage, has to be declared outside main for the ISR to access it
+volatile unsigned int dutyHelper = 0; //helper variable for the duty cycle calculation
 volatile bool motor_run = 0;
 
 
@@ -37,46 +38,44 @@ volatile float timer = 0.0;
 volatile float timer2 = 0.0;
 volatile bool timer_running = 0;
 
+//volatile bool tempflag = 0;
+
 ISR(USART_RX_vect)
 {
     rx_in = UDR0;
     if(rx_in == 0x71 && rx_val == 0) //First bit; incoming datatype flag
         rx_val = 1;
-    else if(rx_in == 0xFF && rx_val == 1)
+    if(rx_val == 1 && rx_in <= 100)
     {
-        rx_strike++;
-        if(rx_strike == 3)
-        {
-            rx_val = 0;
-            rx_strike = 0;
-        }
-    }
-    else if(rx_val == 1 && rx_in <= 100)
-    {
-        dutyCycle = 255 * (rx_in/100.0);
-        OCR0A = (int)dutyCycle;
+        dutyCycle = (rx_in/100.0) * 255.0;
+        //dutyHelper = dutyCycle;
+        OCR0A = dutyCycle;
+        rx_val = 0;
     }
     if(rx_val == 1)
     {
         switch (rx_in)
         {
             case 101: //increase duty cycle by 10%
-                if((dutyCycle + 25) <= 255)
+                if((dutyCycle + 25.5) <= 255.0)
                 {
                     dutyCycle = dutyCycle + 25.5;
-                    OCR0A = (int)dutyCycle;
+                    OCR0A = dutyCycle;
+                    rx_val = 0;
                 }
                 break;
             case 102: //decrease duty cycle by 10%
-                if((dutyCycle - 25) >= 0)
+                if((dutyCycle - 25.5) >= 0.0)
                 {
                     dutyCycle = dutyCycle - 25.5;
-                    OCR0A = (int)dutyCycle;
+                    OCR0A = dutyCycle;
+                    rx_val = 0;
                 }
                 break;
             case 103: //start motor
                 motor_run = 1;
                 rx_end = 1;
+                rx_val = 0;
                 break;
             case 104: //stop motor 
                 motor_run = 0;
@@ -84,9 +83,11 @@ ISR(USART_RX_vect)
                 break;
             case 105: //change page
                 rx_page = 1;
+                rx_val = 0;
                 break;
             case 106: //change page
                 rx_page = 0;
+                rx_val = 0;
                 break;
         }
     }
@@ -146,7 +147,7 @@ int main(void) {
     //PWM, motor driver, runs in the backround
     DDRD |= (1 << PORTD5) | (1 << PORTD6); //PD6-5 to output // 0x60
     TCCR0A |= 0b00000011; //original value 0b10100011
-    //TCCR0A &= ~((1 << COM0A1) | (1 << COM0B1));
+    //TCCR0A &= ~(1 << COM0A1); 
     TCCR0B |= (0 << WGM02 ) |(1 << CS02) | (0 << CS01) | (1 << CS00);
     //OCR0A |= dutyCycle; //When the compare match occurs OC0A is cleared (output pins cleared)
     TIMSK0 |= 0x01; //enable overflow interrupt
@@ -172,6 +173,9 @@ int main(void) {
         while(!(TIFR1 & (1<<ICF1)))
         {
 
+            printf("dutycycle%d%c%c%c", OCR0A, 255, 255, 255);
+            //printf("tempflag:%d%c%c%c", tempflag, 255, 255, 255);
+
             if(rx_page == 0)
             {
 
@@ -182,13 +186,13 @@ int main(void) {
                 {
                     if(motor_run == 0)
                     {   
-                        TCCR0A &= ~((1 << COM0A1) | (1 << COM0B1));
+                        TCCR0A &= ~(1 << COM0A1);
                         timer_running = 0;
                         timer = 0;
                     }
                     else if(motor_run == 1)
                     {
-                        TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
+                        TCCR0A |= (1 << COM0A1);
                         timer_running = 1;
                     }
                     rx_end = 0;
@@ -231,7 +235,7 @@ int main(void) {
 unsigned int read_adc(void) {
     unsigned int adc_low = ADCL; //ADCL should be read first
     return adc_low + ((ADCH & 0x03) << 8); //<< 8 is there so ADCH will act like the 9th and 10th bit when added to ADCL
-}   //0b11111111 + 0b00000011 is not what we want, we want 0b1100000000 + 0b11111111 = 0b1111111111 (arbitrary values)
+}   //0b11111111 + 0b00000011 is not what we want, we want 0b11-0000-0000 + 0b1111-1111 = 0b11-1111-1111 (arbitrary values)
 
 void screen_reset(void)
 {
