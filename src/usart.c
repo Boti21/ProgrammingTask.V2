@@ -7,7 +7,7 @@
 #endif
 
 #ifndef BAUD 
-#define BAUD 9600
+#define BAUD 38400
 #endif
 #include <util/setbaud.h>
 
