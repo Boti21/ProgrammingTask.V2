@@ -1,7 +1,7 @@
 #ifndef USART_H_INCLUDED
 #define USART_H_INCLUDED
 
-#define BAUD 38400UL
+#define BAUD 57600UL
 
 int uart_putchar(char c, FILE *stream);
 int uart_getchar(FILE *stream);
